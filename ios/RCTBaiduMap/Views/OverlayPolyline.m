@@ -16,7 +16,7 @@
 }
 
 - (void)addToMap:(BMKMapView *)mapView {
-    NSLog(@"addToMap: %@", _points);
+    NSLog(@"%@ addToMap: %@", [self getType], _points);
     [self initOverlay];
     [self updateOverlay:_overlay];
     [mapView addOverlay:_overlay];

@@ -7,10 +7,7 @@
 
 import {
   requireNativeComponent,
-  View,
-  NativeModules,
-  Platform,
-  DeviceEventEmitter
+  View
 } from 'react-native';
 
 import React, { Component } from 'react';
@@ -19,18 +16,11 @@ import PropTypes from 'prop-types';
 export default class InfoWindow extends Component {
   static propTypes = {
     ...View.propTypes,
-    location: PropTypes.object,
-    visible: PropTypes.bool,
-    title: PropTypes.string
+    offsetY: PropTypes.number
   };
 
   static defaultProps = {
-    location: {
-      latitude: 0,
-      longitude: 0
-    },
-    title: '',
-    visible: false
+    offsetY: 0
   };
 
   constructor() {
@@ -38,9 +28,6 @@ export default class InfoWindow extends Component {
   }
 
   render() {
-    if (Platform.OS === 'ios') {
-      return <View {...this.props} />;
-    }
     return <BaiduMapOverlayInfoWindow {...this.props} />;
   }
 }

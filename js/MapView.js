@@ -7,10 +7,7 @@
 
 import {
   requireNativeComponent,
-  View,
-  NativeModules,
-  Platform,
-  DeviceEventEmitter
+  View
 } from 'react-native';
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
@@ -64,18 +61,7 @@ export default class MapView extends Component {
   }
 
   render() {
-    let childrenCount = 0;
-    if (this.props.children && this.props.children.length) {
-      for (let i = 0; i < this.props.children.length; i++) {
-        const child = this.props.children[i];
-        if (child.length) {
-          childrenCount += child.length;
-        } else {
-          childrenCount++;
-        }
-      }
-    }
-    return <BaiduMapView {...this.props} childrenCount={childrenCount} onChange={this._onChange.bind(this)}/>;
+    return <BaiduMapView {...this.props} onChange={this._onChange.bind(this)}/>;
   }
   
 }

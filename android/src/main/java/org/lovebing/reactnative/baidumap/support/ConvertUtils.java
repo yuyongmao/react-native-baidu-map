@@ -1,5 +1,5 @@
-/**
- * Copyright (c) 2016-present, lovebing.org.
+/*
+ * Copyright (c) 2016-present, lovebing.net.
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
@@ -26,13 +26,16 @@ public class ConvertUtils {
     private static final Map<Class, Field[]> FILED_MAP = new HashMap<>();
 
     public static LatLng convert(LocationData locationData) {
-        if (!locationData.isValid()) {
+        if (locationData == null || !locationData.isValid()) {
             return null;
         }
         return new LatLng(locationData.getLatitude(), locationData.getLongitude());
     }
 
     public static <T> T convert(ReadableMap readableMap, Class<T> targetClass) {
+        if (readableMap == null) {
+            return null;
+        }
         if (!FILED_MAP.containsKey(targetClass)) {
             FILED_MAP.put(targetClass, targetClass.getDeclaredFields());
         }

@@ -1,5 +1,5 @@
-/**
- * Copyright (c) 2016-present, lovebing.org.
+/*
+ * Copyright (c) 2016-present, lovebing.net.
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
@@ -7,10 +7,15 @@
 
 package org.lovebing.reactnative.baidumap.module;
 
+import android.Manifest;
 import android.util.Log;
 import androidx.annotation.NonNull;
+
+import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactMethod;
+
+import org.lovebing.reactnative.baidumap.support.AppUtils;
 
 /**
  * @author lovebing
@@ -33,4 +38,8 @@ public class BaiduMapManager extends BaseModule {
         Log.i("initSDK", key);
     }
 
+    @ReactMethod
+    public void hasLocationPermission(Promise promise) {
+        promise.resolve(AppUtils.hasPermission(context.getCurrentActivity(), Manifest.permission.ACCESS_FINE_LOCATION));
+    }
 }

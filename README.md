@@ -1,8 +1,17 @@
 # react-native-baidu-map [![npm version](https://img.shields.io/npm/v/react-native-baidu-map.svg?style=flat)](https://www.npmjs.com/package/react-native-baidu-map)
 
+1.0.x 分支：react-native-baidu-map-old [![npm version](https://img.shields.io/npm/v/react-native-baidu-map-old.svg?style=flat)](https://www.npmjs.com/package/react-native-baidu-map-old)
+
+分支说明：
+- master：支持 react-native 0.61 及以上版本，Android 使用 androidx
+- 1.0.x：支持 react-native 0.60 及 0.50，Android 未使用 androidx
+
 Baidu Map SDK modules and views for React Native(Android & iOS), support react native 0.61.2+
 
-百度地图 React Native 模块，支持 react native 0.61.2+。
+百度地图 React Native 模块。
+
+使用示例：https://github.com/lovebing/react-native-baidu-map-examples
+
 使用百度地图SDK最新版本。
 Android 版导入的 SDK 包含以下模块：
 - 基础定位
@@ -15,15 +24,12 @@ QQ群：561086908
 
 ### 近期 TODO:
 #### Android
-- 完善 Marker
 - 完善坐标转换
 - 添加一些常用的方法
 
 #### iOS
-- 完善 Marker
 - 完善坐标标转换
 - 完善 Cluster（点聚合）
-- 支持 Overlay（覆盖物）
 - 添加一些常用的方法
 
 Marker icon 的实现参考了 https://github.com/react-native-community/react-native-maps 的相关代码。
@@ -42,44 +48,16 @@ https://stackoverflow.com/questions/44061155/react-native-npm-link-local-depende
 
 ### Environments 环境要求
 1.JS
-- node: 8.0+
-- react-native: 0.61.+
+- node: 12+
+- react-native: 0.50.+
 2.Android
 - Android SDK: api 28+
 - gradle: 4.10.1
 - Android Studio: 3.1.3+
 
 3.iOS
-- XCode: 8.0+
+- XCode: 11.3+
 
-
-### Install 安装
-#### 使用本地的包 （以 example 为例）
-```shell
-mkdir example/node_modules/react-native-baidu-map
-cp -R package.json js index.js ios android LICENSE README.md react-native-baidu-map.podspec example/node_modules/react-native-baidu-map/
-
-```
-#### 使用 npm 源
-npm install react-native-baidu-map --save
-
-### 原生模块导入
-`react-native link react-native-baidu-map`
-
-#### Android
-
-如果使用 react-native 0.61 以下的版本会报错，需要修改一下 react-native-baidu-map 的 build.gradle，
-把 `compileOnly 'com.facebook.react:react-native:0.61.2'` 改为 `compileOnly 'com.facebook.react:react-native:0.60.1'`
-
-如下：
-
-![修改 build.gradle](http://repo.codeboot.net/resources/images/react-native-baidu-map/react-native-0.60-config.png)
-
-
-#### iOS
-如果 iOS 项目包含 Podfile，会自动加上 react-native-baidu-map 的依赖，只需要执行 `pod install`，不需要做其它处理。
-如果没有 Podfile，则需要手动导入百度地图和定位 SDK 的依赖，参考 http://lbsyun.baidu.com/index.php?title=iossdk/guide/create-project/oc
-和 http://lbsyun.baidu.com/index.php?title=ios-locsdk/guide/create-project/manual-create
 
 ### 初始化
 #### Android
@@ -102,8 +80,6 @@ application 下添加名为 com.baidu.lbsapi.API_KEY 的 meta，如
         android:name="com.baidu.lbsapi.API_KEY"
         android:value="uDRdqQMGQeoPGn5CwMmIYicdUIVv1YST" />
 ```
-
-如果没有开启 androidx，需要手动修改 AppUtils 相应的包
 
 #### iOS
 使用 BaiduMapManager.initSDK 方法设置 api key，如
@@ -139,27 +115,33 @@ BaiduMapManager.initSDK('sIMQlfmOXhQmPLF1QMh4aBp8zZO9Lb2A');
 | onMapPoiClick           | func  | undefined|
 
 #### Overlay 覆盖物
-    const { Marker, Cluster, Arc, Circle, Polyline, Polygon, Text, InfoWindow } = Overlay;
+    const { Marker, Cluster, Arc, Circle, Polyline, Polygon, InfoWindow, HeatMap } = Overlay;
+
+##### 颜色取值说明
+6 位(RRGGBB)或 8 位(AARRGGBB)
 
 ##### Marker Props 属性
 | Prop                    | Type  | Default  | Description
 | ----------------------- |:-----:| :-------:| -------
-| title                   | string| null     |
+| title                   | string| null     | 如果没有 InfoWindow，将会根据 title 生成 InfoWindow
+| titleOffsetY            | int   | -80      | title 作为 InfoWindow 展示的 y 轴偏移量，仅 Android
 | location                | object| {latitude: 0, longitude: 0}    |
-| perspective             | bool  | null     |
-| flat                    | bool  | null     |
-| rotate                  | float | 0        |
+| perspective             | bool  | null     | 仅 Android
+| flat                    | bool  | null     | 仅 Android
+| rotate                  | float | 0        | 旋转角度，仅 Android
 | icon                    | any   | null     | icon图片，同 <Image> 的 source 属性
-| alpha                   | float | 1        |
-
+| alpha                   | float | 1        | 透明度，仅 Android
+| animateType             | string|          | 动画效果：drop/grow/jump (iOS 仅支持 drop)
+| pinColor                | string| red      | red/green/purple，大头针颜色，仅 iOS
+| onClick                 | func  |          | 点击事件回调
 ##### Cluster 点聚合
 
 ##### Arc Props 属性
 | Prop                    | Type  | Default  | Description
 | ----------------------- |:-----:| :-------:| -------
-| color                   | string| AA00FF00 |
-| width                   | int   | 4        |
-| poins                   | array | [{latitude: 0, longitude: 0}, {latitude: 0, longitude: 0}, {latitude: 0, longitude: 0}] | 数值长度必须为 3
+| stroke                   | width| {width: 5, color: 'AA000000'}        |
+| points                   | array| [{latitude: 0, longitude: 0}, {latitude: 0, longitude: 0}, {latitude: 0, longitude: 0}] | 数值长度必须为 3
+| dash                      | bool | false    | 是否为虚线，仅 iOS
 
 ##### Circle Props 属性
 | Prop                    | Type  | Default  | Description
@@ -173,8 +155,8 @@ BaiduMapManager.initSDK('sIMQlfmOXhQmPLF1QMh4aBp8zZO9Lb2A');
 | Prop                    | Type  | Default  | Description
 | ----------------------- |:-----:| :-------:| -------
 | points                  | array | [{latitude: 0, longitude: 0}]     |
-| strokeColor             | string| AAFF0000 | 6位(RRGGBB)或8位(AARRGGBB)
-| lineWidth               | int| 1|
+| stroke                  | object| {width: 5, color: 'AA000000'} |
+
 
 ##### Polygon Props 属性
 | Prop                    | Type  | Default  | Description
@@ -194,15 +176,36 @@ BaiduMapManager.initSDK('sIMQlfmOXhQmPLF1QMh4aBp8zZO9Lb2A');
 | rotate                  | float |          |
 | location                | object|{latitude: 0, longitude: 0}
 
+
+##### MarkerIcon 使用 View 作为 marker 的 icon
+
 ##### InfoWindow Props 属性
+必须作为 Marker 的子组件
+
 | Prop                    | Type  | Default  | Description
 | ----------------------- |:-----:| :-------:| -------
-| location                | object|{latitude: 0, longitude: 0}
-| visible                 | bool  | false    | 点击 marker 后才能设为 true
+| offsetY                 | int   | 0        | 相对于 point 在 y 轴的偏移量，仅 Android
+
+#### HeatMap Props 属性
+
+| Prop                    | Type  | Default  | Description
+| ----------------------- |:-----:| :-------:| -------
+| points                  | array   |         | 
+| gradient                | object| { colors: ['66FF00', 'FF0000'], startPoints: [0.2, 1.0] } | 颜色渐变对象
 
 ```jsx
 <MapView>
     <Marker/>
+    <Marker>
+        <InfoWindow style={{ backgroundColor: 'red', width: 200, height: 100}}>
+            <View />
+        </InfoWindow>
+        <MarkerIcon style={{ backgroundColor: 'red', width: 40, height: 40}}>
+            <View>
+                <Text>ABC</Text>
+            </View>
+        </MarkerIcon>
+    </Marker>
     <Cluster>
         <Marker/>
     </Cluster>
@@ -210,10 +213,8 @@ BaiduMapManager.initSDK('sIMQlfmOXhQmPLF1QMh4aBp8zZO9Lb2A');
     <Circle />
     <Polyline />
     <Polygon />
-    <Text />
-    <InfoWindow>
-        <View />
-    </InfoWindow>
+    <Overlay.Text>text</Overlay.Text>
+    <HeatMap />
 </MapView>
 ```
 
@@ -239,6 +240,13 @@ Cluster 示例
     </Cluster>
 </MapView>
 ```
+
+#### BaiduMapManager
+
+| Method                    | Description | Result
+| ------------------------- | ---------------- | -------
+| void initSDK(string apiKey)      | iOS 初始化 SDK   |
+| Promise hasLocationPermission    | 是否有定位权限    |
 
 #### Geolocation Methods
 

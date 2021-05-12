@@ -7,6 +7,7 @@
 //
 
 #import "BaiduMapViewManager.h"
+#import "BMKPointAnnotationPro.h"
 
 @implementation BaiduMapViewManager;
 
@@ -18,6 +19,7 @@ RCT_EXPORT_MODULE(BaiduMapView)
 RCT_EXPORT_VIEW_PROPERTY(mapType, int)
 RCT_EXPORT_VIEW_PROPERTY(zoom, float)
 RCT_EXPORT_VIEW_PROPERTY(showsUserLocation, BOOL);
+RCT_EXPORT_VIEW_PROPERTY(showMapPoi, BOOL);
 RCT_EXPORT_VIEW_PROPERTY(scrollGesturesEnabled, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(zoomGesturesEnabled, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(trafficEnabled, BOOL)
@@ -79,16 +81,30 @@ RCT_CUSTOM_VIEW_PROPERTY(center, CLLocationCoordinate2D, BaiduMapView) {
 }
 
 - (void)mapView:(BMKMapView *)mapView didSelectAnnotationView:(BMKAnnotationView *)view {
+    NSString *title = [[view annotation] title];
+    if (title == nil) {
+        title = @"";
+    }
     NSDictionary* event = @{
                             @"type": @"onMarkerClick",
                             @"params": @{
-                                    @"title": [[view annotation] title],
+                                    @"title": title,
                                     @"position": @{
                                             @"latitude": @([[view annotation] coordinate].latitude),
                                             @"longitude": @([[view annotation] coordinate].longitude)
                                             }
                                     }
                             };
+    if ([mapView isKindOfClass:[BaiduMapView class]]) {
+        BaiduMapView *baiduMapView = (BaiduMapView *) mapView;
+        OverlayMarker *overlayMaker = [baiduMapView findOverlayMaker:[view annotation]];
+        if (overlayMaker != nil) {
+            overlayMaker.onClick(event);
+            NSLog(@"OverlayMarker found");
+        } else {
+            NSLog(@"OverlayMarker not found");
+        }
+    }
     [self sendEvent:mapView params:event];
 }
 
@@ -138,11 +154,16 @@ RCT_CUSTOM_VIEW_PROPERTY(center, CLLocationCoordinate2D, BaiduMapView) {
         annotationView.draggable = YES;
         annotationView.annotation = annotation;
         return annotationView;
+    } else if ([annotation isKindOfClass:[BMKPointAnnotationPro class]]) {
+        BMKPointAnnotationPro *annotationPro = (BMKPointAnnotationPro *) annotation;
+        NSLog(@"BMKPointAnnotationPro");
+        return annotationPro.annotationView;
     } else if ([annotation isKindOfClass:[BMKPointAnnotation class]]) {
-        BMKPinAnnotationView *newAnnotationView = [[BMKPinAnnotationView alloc] initWithAnnotation:annotation reuseIdentifier:markerIdentifier];
-        newAnnotationView.pinColor = BMKPinAnnotationColorPurple;
-        newAnnotationView.animatesDrop = YES;
-        return newAnnotationView;
+        BMKPinAnnotationView *annotationView = [[BMKPinAnnotationView alloc] initWithAnnotation:annotation reuseIdentifier:markerIdentifier];
+        annotationView.pinColor = BMKPinAnnotationColorPurple;
+        annotationView.animatesDrop = YES;
+        NSLog(@"BMKPointAnnotation");
+        return annotationView;
     }
     return nil;
 }
@@ -154,26 +175,40 @@ RCT_CUSTOM_VIEW_PROPERTY(center, CLLocationCoordinate2D, BaiduMapView) {
     if (overlayView == nil) {
         return nil;
     }
+    NSLog(@"fillColor: %@", overlayView.fillColor);
     if ([overlay isKindOfClass:[BMKArcline class]]) {
+        NSLog(@"BMKArcline");
+        OverlayArc *arc = (OverlayArc *) overlayView;
         BMKArclineView *arclineView = [[BMKArclineView alloc] initWithArcline:overlay];
-        arclineView.strokeColor = [UIColor blueColor];
-        arclineView.lineDash = YES;
-        arclineView.lineWidth = 6.0;
+        arclineView.strokeColor = [OverlayUtils getColor:overlayView.strokeColor];
+        arclineView.lineDash = arc.dash;
+        arclineView.lineWidth = overlayView.lineWidth;
         return arclineView;
     } else if([overlay isKindOfClass:[BMKCircle class]]) {
         BMKCircleView *circleView = [[BMKCircleView alloc] initWithCircle:overlay];
+        circleView.strokeColor = [OverlayUtils getColor:overlayView.strokeColor];
+        circleView.lineWidth = overlayView.lineWidth;
+        circleView.fillColor = [OverlayUtils getColor:overlayView.fillColor];
         return circleView;
     } else if([overlay isKindOfClass:[BMKPolyline class]]) {
         BMKPolylineView *polylineView = [[BMKPolylineView alloc] initWithPolyline:overlay];
         polylineView.strokeColor = [OverlayUtils getColor:overlayView.strokeColor];
         polylineView.lineWidth = overlayView.lineWidth;
+        NSLog(@"BMKPolylineView: strokeColor: %@", polylineView.strokeColor);
         return polylineView;
+    } else if([overlay isKindOfClass:[BMKPolygon class]]) {
+        BMKPolygonView *polygonView = [[BMKPolygonView alloc] initWithPolygon:overlay];
+        polygonView.strokeColor = [OverlayUtils getColor:overlayView.strokeColor];
+        polygonView.lineWidth = overlayView.lineWidth;
+        polygonView.fillColor = [OverlayUtils getColor:overlayView.fillColor];
+        return polygonView;
     }
     return nil;
 }
 
 - (void)mapStatusDidChanged: (BMKMapView *)mapView {
     CLLocationCoordinate2D targetGeoPt = [mapView getMapStatus].targetGeoPt;
+    BMKCoordinateRegion region = mapView.region;
     NSDictionary* event = @{
                             @"type": @"onMapStatusChange",
                             @"params": @{
@@ -181,7 +216,9 @@ RCT_CUSTOM_VIEW_PROPERTY(center, CLLocationCoordinate2D, BaiduMapView) {
                                             @"latitude": @(targetGeoPt.latitude),
                                             @"longitude": @(targetGeoPt.longitude)
                                             },
-                                    @"zoom": @"",
+                                    @"latitudeDelta": @(region.span.latitudeDelta),
+                                    @"longitudeDelta": @(region.span.longitudeDelta),
+                                    @"zoom": @(mapView.zoomLevel),
                                     @"overlook": @""
                                     }
                             };

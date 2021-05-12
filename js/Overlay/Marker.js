@@ -5,12 +5,9 @@
  * LICENSE file in the root directory of this source tree.
  */
 
- import {
+import {
   requireNativeComponent,
-  View,
-  NativeModules,
-  Platform,
-  DeviceEventEmitter
+  View
 } from 'react-native';
 import resolveAssetSource from 'react-native/Libraries/Image/resolveAssetSource';
 
@@ -21,14 +18,20 @@ export default class Marker extends Component {
   static propTypes = {
     ...View.propTypes,
     title: PropTypes.string,
+    titleOffsetY: PropTypes.number,
     location: PropTypes.object,
     alpha: PropTypes.number,
     rotate: PropTypes.number,
     flat: PropTypes.bool,
-    icon: PropTypes.any
+    icon: PropTypes.any,
+    animateType: PropTypes.string,
+    pinColor: PropTypes.string,
+    onClick: PropTypes.func
   };
 
   static defaultProps = {
+    titleOffsetY: -80,
+    animateType: '',
     location: {
       latitude: 0,
       longitude: 0
@@ -40,13 +43,15 @@ export default class Marker extends Component {
     super();
   }
 
-  render() {
-    let icon;
-    if (this.props.icon) {
-      icon = resolveAssetSource(this.props.icon) || {};
-      icon = icon.uri || this.props.icon;
+  handleClick(e) {
+    if (this.props.onClick) {
+      this.props.onClick(e.nativeEvent);
     }
-    return <BaiduMapOverlayMarker {...this.props} icon={icon} />;
+  }
+
+  render() {
+    const icon = resolveAssetSource(this.props.icon);
+    return <BaiduMapOverlayMarker {...this.props} icon={icon} onClick={this.handleClick.bind(this)} />;
   }
 }
 const BaiduMapOverlayMarker = requireNativeComponent('BaiduMapOverlayMarker', Marker);
